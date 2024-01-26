@@ -1,6 +1,5 @@
 package com.example.trie_search_example.service;
 
-//import com.example.trie_search_example.repository.TrieRepository;
 import com.example.trie_search_example.entity.TrieEntity;
 import com.example.trie_search_example.repository.TrieRepository;
 import com.example.trie_search_example.util.TrieNode;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+
 
 @Service
 public class TrieService {
@@ -28,63 +27,71 @@ public class TrieService {
     public void insert(String word) {
         TrieNode node = root;
         for (char ch : word.toCharArray()) {
-            node.children.putIfAbsent(ch, new TrieNode());
-            node = node.children.get(ch);
+            node = node.getChildren().computeIfAbsent(ch, k -> new TrieNode());
         }
-        node.isEndOfWord = true;
-
+        node.setEndOfWord(true);
         // Save the word in MongoDB
         trieRepository.save(new TrieEntity(word));
-//        trieRepository.save(new TrieEntity(word));
     }
 
-    public List<String> search(String prefix) {
-        TrieNode node = root;
-        for (char ch : prefix.toCharArray()) {
-            if (!node.children.containsKey(ch)) {
-                return Collections.emptyList();
+//    public List<String> search(String key) {
+//        TrieNode node = findNodeForKey(key);
+//        return (node == null) ? Collections.emptyList() : getAllWordsWithPrefix(node, key);
+//    }
+//
+//    private TrieNode findNodeForKey(String key) {
+//        TrieNode node = root;
+//        for (char ch : key.toCharArray()) {
+//            if (!node.getChildren().containsKey(ch)) {
+//                return null;
+//            }
+//            node = node.getChildren().get(ch);
+//        }
+//        return node;
+//    }
+//
+//    private List<String> getAllWordsWithPrefix(TrieNode node, String key) {
+//        List<String> words = new ArrayList<>();
+//
+//        if (node.isEndOfWord()) {
+//            words.add(key);
+//        }
+//
+//        List<TrieEntity> entities = trieRepository.findByWordStartingWith(key);
+//        if (entities.isEmpty()) {
+//            words.add("Key is not present in Database !");
+//        } else {
+//            words.addAll(entities.stream().map(TrieEntity::getWord).toList());
+//        }
+//
+//        return words;
+//    }
+
+    public Object searchAutoSuggestion(String key) {
+        TrieNode current = root;
+        boolean isKeyPresent = true;
+
+        // Traverse the trie to check if the complete word is present
+        for (char c : key.toCharArray()) {
+            current = current.getChildren().get(c);
+            if (current == null) {
+                isKeyPresent = false;
+                break;
             }
-            node = node.children.get(ch);
-        }
-        return getAllWordsWithPrefix(node, prefix);
-    }
-
-    private List<String> getAllWordsWithPrefix(TrieNode node, String currentPrefix) {
-        List<String> words = new ArrayList<>();
-
-
-        List<TrieEntity> myWords = trieRepository.findAll();
-
-        if (node.isEndOfWord) {
-            words.add(currentPrefix);
-        }
-        for (TrieEntity child : myWords) {
-
-            for (Map.Entry<Character, TrieNode> entry : node.children.entrySet()) {
-                words.addAll(getAllWordsWithPrefix(entry.getValue(), currentPrefix + entry.getKey()));
-            }
         }
 
-        return words;
-    }
-
-    public List<String> autoCompleteSuggestions(String prefix) {
-        TrieNode node = getNodeForPrefix(prefix);
-        return node != null ? getAllWordsWithPrefix(node, prefix) : Collections.emptyList();
-    }
-
-    private TrieNode getNodeForPrefix(String prefix) {
-        TrieNode node = root;
-        for (char ch : prefix.toCharArray()) {
-            if (!node.children.containsKey(ch)) {
-                return null;
-            }
-            node = node.children.get(ch);
+        // If the complete word is present, return it
+        if (isKeyPresent && current.isEndOfWord()) {
+            return key;
         }
-        return node;
+
+        // Otherwise, perform auto-suggestion logic based on startsWith method
+        List<TrieEntity> suggestions = trieRepository.findByWordStartingWith(key);
+        List<String> autoSuggestions = suggestions.stream()
+                .map(TrieEntity::getWord)
+                .toList();
+
+        return autoSuggestions.isEmpty() ? "Not present in DataBase" : autoSuggestions;
     }
-
-
-
 
 }

@@ -1,14 +1,19 @@
 package com.example.trie_search_example.util;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class TrieNode {
-    public Map<Character, TrieNode> children;
-    public boolean isEndOfWord;
 
-    public TrieNode() {
-        this.children = new HashMap<>();
-        this.isEndOfWord = false;
-    }
+    private Map<Character, TrieNode> children = new HashMap<>();
+    private boolean isEndOfWord;
 }

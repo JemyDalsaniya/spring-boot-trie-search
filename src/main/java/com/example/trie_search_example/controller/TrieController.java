@@ -3,9 +3,11 @@ package com.example.trie_search_example.controller;
 import com.example.trie_search_example.entity.TrieEntity;
 import com.example.trie_search_example.service.TrieService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -22,9 +24,13 @@ public class TrieController {
     }
 
     @GetMapping("/search/{prefix}")
-    public ResponseEntity<List<String>> searchWords(@PathVariable String prefix) {
-        List<String> words = trieService.search(prefix);
-        return ResponseEntity.ok(words);
+    public ResponseEntity<Object> searchWords(@PathVariable String prefix) {
+        Object words = trieService.searchAutoSuggestion(prefix);
+        if (words != null) {
+            return new ResponseEntity<>(words, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(Collections.singletonList("Key not found"), HttpStatus.NOT_FOUND);
+        }
     }
 
 }
