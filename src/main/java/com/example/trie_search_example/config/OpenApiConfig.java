@@ -12,8 +12,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI usersMicroserviceOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("Your API Title")
-                        .description("Your API Description")
+                .info(new Info().title("MongoDB with Trie Data Structure")
+                        .description("APIs use for the insert and search word using Trie Algorithm")
                         .version("1.0"));
     }
 }

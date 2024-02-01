@@ -1,35 +1,40 @@
 package com.example.trie_search_example.controller;
 
-import com.example.trie_search_example.entity.TrieEntity;
 import com.example.trie_search_example.service.TrieService;
+import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
 
 @RestController
-@RequestMapping("/trie")
 public class TrieController {
 
     @Autowired
     private TrieService trieService;
 
-    @PostMapping("/insert")
-    public ResponseEntity<String> insertWord(@RequestBody TrieEntity trieEntity) {
-        trieService.insert(trieEntity.getWord());
-        return ResponseEntity.ok("Word '" + trieEntity.getWord() + "' inserted into the Trie and MongoDB.");
+    @Hidden
+    @RequestMapping(value="/")
+    public void redirect(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/swagger-ui.html");
     }
 
-    @GetMapping("/search/{prefix}")
-    public ResponseEntity<Object> searchWords(@PathVariable String prefix) {
-        Object words = trieService.searchAutoSuggestion(prefix);
-        if (words != null) {
-            return new ResponseEntity<>(words, HttpStatus.OK);
+    @PostMapping("/insert/{word}")
+    public ResponseEntity<String> insertWord(@PathVariable String word) {
+        trieService.insert(word);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Word inserted successfully");
+    }
+
+    @GetMapping("/search/{word}")
+    public ResponseEntity<String> searchWord(@PathVariable String word) {
+        boolean wordExists = trieService.search(word);
+        if (wordExists) {
+            return ResponseEntity.ok("Word found");
         } else {
-            return new ResponseEntity<>(Collections.singletonList("Key not found"), HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Word not found");
         }
     }
 

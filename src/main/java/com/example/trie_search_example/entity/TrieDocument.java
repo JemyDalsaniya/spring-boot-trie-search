@@ -4,21 +4,23 @@ import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-@Document(collection = "trie_collection")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.List;
+
+@Document(collection = "trie_2")
+@Getter
+@Setter
 public class TrieDocument {
 
     @Id
     private String id;
-
-    private String prefix;
+    private char character;
     private boolean isEndOfWord;
+    private List<TrieDocument> children;
 
-    public TrieDocument(String prefix, boolean isEndOfWord) {
-        this.prefix = prefix;
+    public TrieDocument(char character, boolean isEndOfWord, List<TrieDocument> children) {
+        this.character = character;
         this.isEndOfWord = isEndOfWord;
+        this.children = children;
     }
 
 }
